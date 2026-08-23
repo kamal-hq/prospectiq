@@ -1,0 +1,107 @@
+# ==============================================
+# Git Ignore Configuration
+# Lead Generation & Web Presence Validation Engine
+# ==============================================
+
+# ----------------------------------------------
+# Environment Variables & Secrets
+# ----------------------------------------------
+.env
+.env.*
+*.env
+!.env.example
+
+# ----------------------------------------------
+# SQLite Databases & Local Storage
+# ----------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+leads.db
+
+# ----------------------------------------------
+# Quota Tracking & Local State
+# ----------------------------------------------
+usage_tracker.json
+
+# ----------------------------------------------
+# Data Exports & Legacy Output Files
+# ----------------------------------------------
+*.csv
+*.tsv
+*.xlsx
+established_digital_presence.csv
+needs_digital_presence.csv
+unicode_report.txt
+
+# ----------------------------------------------
+# Python Bytecode & Cache
+# ----------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ----------------------------------------------
+# Virtual Environments
+# ----------------------------------------------
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ----------------------------------------------
+# Application Logs
+# ----------------------------------------------
+logs/
+*.log
+app.log
+
+# ----------------------------------------------
+# Operating System Artifacts
+# ----------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ----------------------------------------------
+# IDE & Code Editor Configs
+# ----------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
