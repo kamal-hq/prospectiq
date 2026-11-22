@@ -98,6 +98,14 @@ desktop.ini
 $RECYCLE.BIN/
 
 # ----------------------------------------------
+# Frontend Build & Dependencies (web/)
+# ----------------------------------------------
+node_modules/
+web/node_modules/
+web/dist/
+.vercel/
+
+# ----------------------------------------------
 # IDE & Code Editor Configs
 # ----------------------------------------------
 .idea/
