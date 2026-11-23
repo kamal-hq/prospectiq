@@ -6,11 +6,11 @@
 
 ## 1. Current Project Snapshot
 
-- **Last Updated:** 2026-11-22
+- **Last Updated:** 2026-11-23
 - **Active Workspace:** `C:\Users\Asif Computers\Desktop\TriSyn Media\prospectiq-main`
-- **Current Version on Disk:** v3.0 Clean Monorepo (`engine/` Python package + root `main.py` shim + `web/` clean React 19/Vite 8/Tailwind v4 frontend + `supabase/prospectiq_schema.sql` + `.github/workflows/auto-scrape.yml` + `tests/`)
+- **Current Version on Disk:** v3.0 Clean Monorepo (`engine/` Python package + root `main.py` shim + `web/` React 19/Vite 8/Tailwind v4 + `web/api/scrape-trigger.ts` + `supabase/prospectiq_schema.sql` + `.github/workflows/auto-scrape.yml` + `tests/`)
 - **Target Version:** v3.0 (Garbage-Free Agency Prospecting Engine + `shared-apps` Supabase Postgres/Auth/Realtime `prospectiq.*` + GitHub Actions Auto-Scraper + Vercel Dashboard)
-- **Active Phase:** **Phase 2 Cloud Connection Verified Live on `shared-apps` (`prospectiq.*`) & Monorepo Clean (`25/25` tests green)** -> Committing & pushing to `kamal-hq/prospectiq` so user can configure GitHub Secrets and proceed to Phase 3 (`web/` live Supabase + Vercel).
+- **Active Phase:** **Phase 3 Code Complete & Verified Locally (Uncommitted on Disk)** -> Paused for the night; tomorrow: verify Owner sign-in on `http://localhost:5173/`, commit & push Phase 3 (`web/`), deploy `web/` to Vercel, append production `/auth/callback` URL to `shared-apps`, and run first controlled live scrape!
 
 ---
 
@@ -69,6 +69,17 @@ All Phase 2 code, SQL schema, CI workflow, and offline cloud tests are implement
 - Moved all 11 Python backend modules into `engine/` package (`config.BASE_DIR` anchored to repo root) with thin root `main.py` shim preserving `python main.py` & GitHub Actions compatibility; updated `.gitignore` for `web/node_modules/`, `web/dist/`, `.vercel/`.
 - **Live `shared-apps` Cloud Smoke Test Verified (`2026-11-22`, 0 API credits spent):** Authenticated via `sb_publishable_...` + Owner JWT (`muhammad.kamal.hq@gmail.com`, `service_role_key=False`), lazily provisioned `prospectiq.profiles` (`1 ['owner']`), read `prospectiq.target_queue`, `prospectiq.exclusions`, `prospectiq.api_quotas`, and `prospectiq.leads` through `prospectiq.is_owner()` RLS with zero errors.
 
+## 3d. Phase 3 Implementation Log (`2026-11-22`)
+
+- `web/vite.config.ts`, `web/src/vite-env.d.ts`, `web/vercel.json`: Configured `envDir` + `envPrefix: ["VITE_", "NEXT_PUBLIC_"]` so `NEXT_PUBLIC_SUPABASE_*` env vars work identically locally and on Vercel (zero private keys exposed to browser), plus clean SPA rewrite excluding `/api/*`.
+- `web/src/lib/supabase.ts` & `web/src/lib/prospectiqApi.ts`: Built publishable-key-only Supabase client routed to `{ db: { schema: getSupabaseSchema() } }` (`prospectiq`), lazy `ensureOwnerProfile()` upsert (`onConflict: "id"`, rejects non-owner `shared-apps` users cleanly via RLS), live workspace loader, CRM/queue/exclusion mutations, Supabase Realtime subscriptions on `leads` & `scrape_jobs`, and RFC-4180 CSV exporter.
+- `web/api/scrape-trigger.ts`: Vercel Serverless Function verifying Owner JWT via publishable key + `OWNER_SUPABASE_USER_ID` (ZERO `service_role`), creating `QUEUED` `prospectiq.scrape_jobs` row under Owner JWT, and dispatching `.github/workflows/auto-scrape.yml`.
+- Wired all views (`App.tsx`, `AuthModal.tsx`, `Sidebar.tsx`, `TopBar.tsx`, `Dashboard.tsx`, `LeadTable.tsx`, `LeadDrawer.tsx`, `ScraperView.tsx`, `SettingsView.tsx`, `QuotaGuard.tsx`) with strict logged-out static dummy preview (`mockLeads.ts`, `mockWorkspace.ts`, zero DB calls) vs logged-in Owner live `prospectiq.*` workspace.
+- `web/src/components/layout/AuthModal.tsx`: Removed accidentally prefilled owner email & internal `shared-apps`/`prospectiq.*` copy from public modal; audited entire codebase (`web/src/**`, `web/api/*`, `engine/*`, `supabase/*`) confirming 0 hardcoded personal emails or UIDs.
+- **Dark / Light Theme Switch (`2026-11-23`):** Added Sun/Moon toggle in `TopBar.tsx`, persisted `prospectiq-theme` in `localStorage` defaulting to **Light theme** with zero-flicker bootstrap in `web/index.html`, built full high-contrast `[data-theme="light"]` token + component theme in `web/src/index.css`, and made Recharts/QuotaGuard accents theme-aware.
+- Verified green: `pnpm --dir web exec tsc --noEmit` (0 errors), `pnpm --dir web run build` (`1.91s`), `python -m unittest discover -s tests -v` (25/25 OK).
+- **Git Checkpoint:** Commit `845d3c4` pushed to `origin/main` (`https://github.com/kamal-hq/prospectiq`) covering Phase 1, Phase 2, and monorepo cleanup. Phase 3 changes (`web/` + `phase-doc.md` + `memory.md`) are verified locally on disk and intentionally uncommitted pending tomorrow's Owner sign-in check.
+
 ---
 
 ## 4. Forensic Audit Findings (v2.0 Bugs Resolved in Phase 1)
@@ -88,15 +99,20 @@ All Phase 2 code, SQL schema, CI workflow, and offline cloud tests are implement
 
 ---
 
-## 6. Immediate Next Actions
+## 6. Immediate Next Actions (Resume Tomorrow)
 
-1. **User Action (Run on Live `shared-apps` Supabase — `https://hlxkgikqmljthjsbhzhq.supabase.co`):**
-   - Paste & run `supabase/prospectiq_schema.sql` in `shared-apps` SQL Editor.
-   - **Project Settings -> Data API -> Exposed schemas:** append `prospectiq` so it becomes `public, cadence, prospectiq` (do NOT remove `cadence`!).
-   - **Authentication -> Users:** reuse your existing Cadence account UID (same email works across both apps!) and run the 1-line `INSERT INTO prospectiq.app_config (key, value) VALUES ('owner_user_id', '<UID>') ...`.
-   - **Authentication -> URL Configuration -> Redirect URLs:** APPEND localhost & Vercel `/auth/callback` URLs without deleting Cadence's URLs.
-2. **User Action (Security & GitHub Secrets — ZERO `service_role`!):**
-   - Rotate exposed `HUNTER_API_KEY` (previously logged in v2.0 `logs/app.log`).
-   - Add `SERPAPI_API_KEY`, `BRAVE_API_KEY`, `HUNTER_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` (`sb_publishable_...`), `SUPABASE_OWNER_EMAIL`, `SUPABASE_OWNER_PASSWORD` (and optional `SUPABASE_SCHEMA=prospectiq`) to GitHub Repository Secrets.
-3. **Optional Governance Sync (Pending User Go Ahead per `AGENTS.md` Hard Stops):** Update `ARCHITECTURE.md` & `rule.md` to replace legacy `SUPABASE_SERVICE_ROLE_KEY` references with this exact `shared-apps` publishable-key contract.
-4. **Next Build Step (Phase 3):** Build `web/` Supabase client factories (`{ db: { schema: getSupabaseSchema() } }`, lazy `prospectiq.profiles` provisioning, explicit `redirectTo` callbacks, manual Vercel env vars with `Config` type for `NEXT_PUBLIC_*`) + integrate `Design ProspectIQ SaaS Dashboard/`!
+1. **Verify Local Owner Login (2 mins):**
+   - Start `pnpm --dir web run dev` (outside sandbox on Windows) -> open `http://localhost:5173/`.
+   - Confirm logged-out view shows static dummy data & empty email field in Owner sign-in modal.
+   - Sign in as Owner -> confirm `LIVE · prospectiq` badge, 6 seeded `target_queue` rows, 10 seeded `exclusions`, and live `0 / 250` quota meters.
+2. **Commit & Push Phase 3:**
+   - Commit & push uncommitted Phase 3 changes (`web/`, `phase-doc.md`, `memory.md`) to `kamal-hq/prospectiq` (`main`).
+3. **Deploy `web/` to Vercel (Free Hobby):**
+   - Root Directory = `web` (skip optional Vercel Supabase Integration button).
+   - Manual Env Vars (ZERO `service_role`!):
+     - **Config:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (`sb_publishable_...`), `NEXT_PUBLIC_SUPABASE_SCHEMA=prospectiq`
+     - **Secret:** `OWNER_SUPABASE_USER_ID` (`bc477ad2-5f94-451a-a186-f89caac09cb6`), `GITHUB_DISPATCH_TOKEN` (fine-grained PAT, `Actions: Read and write`), `GITHUB_REPO_OWNER=kamal-hq`, `GITHUB_REPO_NAME=prospectiq`
+   - Append live `https://<your-vercel-domain>.vercel.app/auth/callback` to `shared-apps` -> Authentication -> URL Configuration -> Redirect URLs (keep Cadence URLs intact!).
+4. **First Controlled Live Scrape & Phase 4 QA:**
+   - Dispatch 1 city × 1 niche (1 SerpApi credit) from live Vercel UI -> verify GitHub Actions + Supabase Realtime stream end-to-end.
+   - *(Optional, pending approval per `AGENTS.md` Hard Stops)* Sync `ARCHITECTURE.md` & `rule.md` to remove legacy `SUPABASE_SERVICE_ROLE_KEY` references in favor of the `shared-apps` publishable-key contract.

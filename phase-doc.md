@@ -9,8 +9,8 @@
 | Phase | Focus | Primary Target | Status |
 | :--- | :--- | :--- | :--- |
 | **Phase 1** | Core Engine Overhaul & "Garbage In, Garbage Out" Fixes | Local Python Engine | `[x] Verified & Complete` |
-| **Phase 2** | Supabase Cloud Migration & GitHub Actions Auto-Scraper | Cloud DB + CI/CD Automation | `[~] Live Cloud Verified — Pending GitHub Secrets & CI Smoke Run` |
-| **Phase 3** | Figma Pro Frontend Integration & Vercel Deployment | `web/` Vite + Vercel Functions | `[ ] Not Started` |
+| **Phase 2** | Supabase Cloud Migration & GitHub Actions Auto-Scraper | Cloud DB + CI/CD Automation | `[x] Verified & Secrets Configured` |
+| **Phase 3** | Figma Pro Frontend Integration & Vercel Deployment | `web/` Vite + Vercel Functions | `[~] Code Complete & Verified — Ready for Local Test & Vercel Deploy` |
 | **Phase 4** | Production QA, Scoring Calibration & Portfolio Launch | Full Stack + Live Data Audit | `[ ] Not Started` |
 
 ---
@@ -91,25 +91,25 @@
 **Objective:** Generate the high-craft UI in Figma Pro using the prompt in `design.md`, integrate it into `web/`, connect Supabase + GitHub dispatch, and deploy live on Vercel.
 
 ### Tasks
-- [ ] **3.1 Generate & Import Frontend (`web/`):**
-  - Generate UI screens in Figma Pro using the exact prompt in `design.md`.
-  - Scaffold Next.js App Router + TypeScript + Tailwind in `web/` and integrate exported Figma Pro components cleanly.
-- [ ] **3.2 Supabase Data & Realtime Wiring:**
-  - Build SSR + Client Supabase helpers (`@supabase/ssr`).
-  - Wire **Command Center** KPIs, conversion funnel, quota meters, and recent jobs feed.
-  - Wire **Lead Explorer** server-backed search, multi-facet filtering, sorting, pagination, bulk CSV export, and inline Outreach Status updates.
-  - Wire **Lead Intelligence Drawer** (Digital Health Audit, Copy Email/Phone, Outreach Notes save, Re-Enrich action).
-  - Wire Supabase Realtime subscription so new leads and job progress update live without page refresh.
-- [ ] **3.3 On-Demand Scraper Bridge & Single-Owner Auth Gate:**
-  - Create `/api/scrape/trigger` Next.js Route Handler: verifies authenticated Supabase JWT AND checks `user.id === OWNER_SUPABASE_USER_ID` -> inserts `QUEUED` row in `prospectiq.scrape_jobs` -> calls GitHub Actions `workflow_dispatch` API.
-  - Implement **Dummy-Data Public Showcase vs. Private Owner Workspace:**
-    - **No Public Sign-Up:** Login modal supports `signInWithPassword` only (for Muhammad Kamal's single pre-created Owner account).
-    - **Logged-Out Visitors:** Render 100% static curated client-side dummy data with full interactive demo UX (filters, drawer, simulated scrape) and ZERO Supabase DB calls.
-    - **Logged-In Owner:** Switches seamlessly to live `prospectiq.*` Supabase data, Realtime job streams, CRM notes/status saves, and real GitHub Actions triggers.
+- [x] **3.1 Clean Frontend Integration (`web/`):**
+  - Cleaned Figma Make export into `web/` (React 19 + TypeScript strict + Vite 8 + Tailwind v4), configured `envDir` + `envPrefix: ["VITE_", "NEXT_PUBLIC_"]`, and created `web/vercel.json` SPA routing.
+- [x] **3.2 Supabase Data & Realtime Wiring (`web/src/lib/supabase.ts`, `web/src/lib/prospectiqApi.ts`):**
+  - Built publishable-key-only Supabase client strictly routed to `{ db: { schema: getSupabaseSchema() } }` (`prospectiq`), zero `service_role`.
+  - Wired **Command Center** live KPIs, funnel, pitch-angle donut, quota meters, and recent jobs feed (with executive static dummy metrics when logged out).
+  - Wired **Lead Explorer** search (`⌘K`), multi-facet filters (City, Industry, Min Score, Outreach Stage, Quick Pills), pagination, real RFC-4180 CSV export, bulk status actions, and inline Outreach Status saves.
+  - Wired **Lead Intelligence Drawer** (Digital Health Audit, Copy Email/Phone/Brief, Social links, Outreach Notes & Status save).
+  - Wired **Auto-Scraper & Settings** live Target Queue toggles/add, Job History with GitHub logs link, live API Quota meters, and Exclusion CRUD.
+  - Wired Supabase Realtime subscription on `prospectiq.leads` and `prospectiq.scrape_jobs` (active ONLY for verified Owner sessions).
+- [x] **3.3 On-Demand Scraper Bridge & Single-Owner Auth Gate (`web/api/scrape-trigger.ts`, `AuthModal.tsx`):**
+  - Created `/api/scrape-trigger` Vercel Serverless Function: verifies Owner JWT via publishable key + `user.id === OWNER_SUPABASE_USER_ID` (ZERO `service_role`), inserts `QUEUED` row in `prospectiq.scrape_jobs`, and dispatches GitHub Actions `auto-scrape.yml`.
+  - Implemented **Dummy-Data Public Showcase vs. Private Owner Workspace:**
+    - **No Public Sign-Up:** `AuthModal` supports Owner `signInWithPassword` + password reset with explicit `${window.location.origin}/auth/callback` redirect.
+    - **Logged-Out Visitors:** Render 100% static curated client-side dummy data (`mockLeads.ts`, `mockWorkspace.ts`) with ZERO Supabase DB calls.
+    - **Logged-In Owner:** Lazily upserts `prospectiq.profiles` (`onConflict: "id"` — zero triggers on `auth.users`), rejects any non-owner `shared-apps` account via RLS, and switches seamlessly to live `prospectiq.*` data + Realtime.
 - [ ] **3.4 Vercel Free Hobby Deployment:**
-  - Connect GitHub repo to Vercel with Root Directory set to `web/` (skip Vercel's optional "Supabase Integration" button and add env vars manually).
+  - Commit & push Phase 3 to GitHub, connect `kamal-hq/prospectiq` to Vercel with Root Directory set to `web/` (skip Vercel's optional "Supabase Integration" button and add env vars manually).
   - Add Vercel environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (`sb_publishable_...`), `NEXT_PUBLIC_SUPABASE_SCHEMA=prospectiq` (all Type = `Config`, NOT `Secret`), plus server-side `OWNER_SUPABASE_USER_ID`, `GITHUB_DISPATCH_TOKEN`, `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME` (**NEVER** add `service_role` key).
-  - Append localhost & production Vercel `/auth/callback` URLs to `shared-apps` Supabase Auth -> URL Configuration -> Redirect URLs (preserving `cadence` URLs) and pass explicit `redirectTo` / `emailRedirectTo` in all Auth calls.
+  - Append production Vercel `https://<your-app>.vercel.app/auth/callback` URL to `shared-apps` Supabase Auth -> URL Configuration -> Redirect URLs (preserving `cadence` URLs).
 
 ### Phase 3 Definition of Done (DoD)
 - Live production URL on `*.vercel.app` loads cleanly on desktop and mobile.

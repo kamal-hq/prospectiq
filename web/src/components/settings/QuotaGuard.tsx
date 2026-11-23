@@ -1,16 +1,64 @@
-const quotas = [
-  { name: "SerpApi", value: 42, max: 250, color: "#c9ff35" },
-  { name: "Brave Search", value: 18, max: 1000, color: "#62c5ff" },
-  { name: "Hunter.io", value: 11, max: 50, color: "#a4b6ff" },
-];
+import type { ApiProvider, ApiQuotaRow } from "@/lib/types";
 
-export default function QuotaGuard({ large = false }: { large?: boolean }) {
-  return <div className={large ? "quota-grid" : "quota-list"}>
-    {quotas.map((quota) => <div className={large ? "quota-card" : "quota-row"} key={quota.name}>
-      <div className="quota-meta"><strong>{quota.name}</strong><span className="mono">{quota.value} / {quota.max}</span></div>
-      {large && <div className="quota-big mono">{Math.round(quota.value / quota.max * 100)}<small>%</small></div>}
-      <div className="progress"><i style={{ width: `${quota.value / quota.max * 100}%`, background: quota.color }} /></div>
-      <p>{quota.name === "Hunter.io" ? "Free-first protected" : large ? "Resets Nov 01, 2025" : `${quota.max - quota.value} credits available`}</p>
-    </div>)}
-  </div>;
+const PROVIDER_META: Record<ApiProvider, { label: string; color: string }> = {
+  serpapi: { label: "SerpApi", color: "var(--quota-lime)" },
+  brave: { label: "Brave Search", color: "var(--quota-sky)" },
+  hunter: { label: "Hunter.io", color: "var(--quota-indigo)" },
+};
+
+function nextMonthResetLabel(): string {
+  const now = new Date();
+  const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  return nextMonth.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+export default function QuotaGuard({
+  quotas,
+  large = false,
+}: {
+  quotas: ApiQuotaRow[];
+  large?: boolean;
+}) {
+  const resetDate = nextMonthResetLabel();
+
+  return (
+    <div className={large ? "quota-grid" : "quota-list"}>
+      {quotas.map((quota) => {
+        const meta = PROVIDER_META[quota.provider];
+        const pct = quota.monthly_limit > 0 ? Math.min(100, Math.round((quota.calls_used / quota.monthly_limit) * 100)) : 0;
+        const remaining = Math.max(0, quota.monthly_limit - quota.calls_used);
+        return (
+          <div className={large ? "quota-card" : "quota-row"} key={quota.provider}>
+            <div className="quota-meta">
+              <strong>{meta.label}</strong>
+              <span className="mono">
+                {quota.calls_used} / {quota.monthly_limit.toLocaleString()}
+              </span>
+            </div>
+            {large && (
+              <div className="quota-big mono">
+                {pct}
+                <small>%</small>
+              </div>
+            )}
+            <div className="progress">
+              <i style={{ width: `${pct}%`, background: meta.color }} />
+            </div>
+            <p>
+              {quota.provider === "hunter"
+                ? "Free-first protected"
+                : large
+                  ? `Resets ${resetDate}`
+                  : `${remaining.toLocaleString()} credits available`}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
 }

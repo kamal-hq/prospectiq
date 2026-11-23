@@ -8,6 +8,15 @@
       content="ProspectIQ — Automated B2B agency lead discovery, digital health audits, MX-verified contacts, outreach tracking, and cloud scraping intelligence."
     />
     <title>ProspectIQ — Agency Lead Intelligence</title>
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("prospectiq-theme");
+          var theme = saved === "light" || saved === "dark" ? saved : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
