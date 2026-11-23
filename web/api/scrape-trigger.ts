@@ -53,16 +53,19 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
   const supabaseUrl = (
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.VITE_SUPABASE_URL ||
     process.env.SUPABASE_URL ||
     ""
   ).trim();
   const supabaseAnonKey = (
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
     process.env.SUPABASE_ANON_KEY ||
     ""
   ).trim();
   const supabaseSchema = (
     process.env.NEXT_PUBLIC_SUPABASE_SCHEMA ||
+    process.env.VITE_SUPABASE_SCHEMA ||
     process.env.SUPABASE_SCHEMA ||
     "prospectiq"
   ).trim();
@@ -71,16 +74,15 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   const githubOwner = (process.env.GITHUB_REPO_OWNER || "kamal-hq").trim();
   const githubRepo = (process.env.GITHUB_REPO_NAME || "prospectiq").trim();
 
-  if (!supabaseUrl || !supabaseAnonKey || !ownerUserId) {
-    res.status(500).json({
-      error: "Server misconfiguration: missing Supabase URL, publishable key, or OWNER_SUPABASE_USER_ID.",
-    });
-    return;
-  }
+  const missing: string[] = [];
+  if (!supabaseUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!supabaseAnonKey) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  if (!ownerUserId) missing.push("OWNER_SUPABASE_USER_ID");
+  if (!githubToken) missing.push("GITHUB_DISPATCH_TOKEN");
 
-  if (!githubToken) {
+  if (missing.length > 0) {
     res.status(500).json({
-      error: "Server misconfiguration: missing GITHUB_DISPATCH_TOKEN in Vercel environment variables.",
+      error: `Missing Vercel env var(s): ${missing.join(", ")}. Add them in Vercel Project Settings -> Environment Variables (Production) and redeploy.`,
     });
     return;
   }
