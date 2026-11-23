@@ -349,6 +349,25 @@ def main(argv: Optional[List[str]] = None) -> None:
     cities = _parse_multi_value_arg(args.cities)
     niches = _parse_multi_value_arg(args.niches)
 
+    # Guardrail: never silently fall back to ephemeral SQLite on GitHub Actions or --job-id runs
+    if (args.job_id or os.getenv("GITHUB_ACTIONS") == "true") and not database.is_cloud_enabled():
+        missing_vars = [
+            name
+            for name, val in (
+                ("SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL", config.SUPABASE_URL),
+                ("SUPABASE_ANON_KEY / NEXT_PUBLIC_SUPABASE_ANON_KEY", config.SUPABASE_ANON_KEY),
+                ("SUPABASE_OWNER_EMAIL", config.SUPABASE_OWNER_EMAIL),
+                ("SUPABASE_OWNER_PASSWORD", config.SUPABASE_OWNER_PASSWORD),
+            )
+            if not (val or "").strip()
+        ]
+        msg = (
+            "Cloud persistence is required in GitHub Actions / --job-id runs, but missing: "
+            + ", ".join(missing_vars)
+        )
+        log.error(msg)
+        raise RuntimeError(msg)
+
     database.init_db()
     backend_label = (
         f"Supabase ({config.SUPABASE_SCHEMA})" if database.is_cloud_enabled() else "Local SQLite"

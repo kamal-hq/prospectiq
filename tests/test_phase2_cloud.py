@@ -365,7 +365,8 @@ class TestMainOrchestrationAndSchemaAudit(unittest.TestCase):
         with open(wf_path, "r", encoding="utf-8") as f:
             wf = f.read()
         self.assertNotIn("SUPABASE_SERVICE_ROLE_KEY", wf)
-        self.assertIn("SUPABASE_ANON_KEY", wf)
+        self.assertIn("secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL", wf)
+        self.assertIn("secrets.SUPABASE_ANON_KEY || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY", wf)
         self.assertIn("SUPABASE_OWNER_EMAIL", wf)
         self.assertIn("SUPABASE_OWNER_PASSWORD", wf)
 

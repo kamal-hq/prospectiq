@@ -90,9 +90,9 @@ jobs:
           HUNTER_API_KEY: ${{ secrets.HUNTER_API_KEY }}
           # Shared-apps multi-schema contract: publishable key + Owner Auth JWT ONLY
           # (ZERO service_role secret so sibling `cadence` schema stays strictly RLS-protected)
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_SCHEMA: ${{ secrets.SUPABASE_SCHEMA || 'prospectiq' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SCHEMA: ${{ secrets.SUPABASE_SCHEMA || secrets.NEXT_PUBLIC_SUPABASE_SCHEMA || 'prospectiq' }}
           SUPABASE_OWNER_EMAIL: ${{ secrets.SUPABASE_OWNER_EMAIL }}
           SUPABASE_OWNER_PASSWORD: ${{ secrets.SUPABASE_OWNER_PASSWORD }}
           EVENT_NAME: ${{ github.event_name }}
