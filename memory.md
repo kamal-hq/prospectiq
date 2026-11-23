@@ -10,7 +10,7 @@
 - **Active Workspace:** `C:\Users\Asif Computers\Desktop\TriSyn Media\prospectiq-main`
 - **Current Version on Disk:** v3.0 Clean Monorepo (`engine/` Python package + root `main.py` shim + `web/` React 19/Vite 8/Tailwind v4 + `web/api/scrape-trigger.ts` + `supabase/prospectiq_schema.sql` + `.github/workflows/auto-scrape.yml` + `tests/`)
 - **Target Version:** v3.0 (Garbage-Free Agency Prospecting Engine + `shared-apps` Supabase Postgres/Auth/Realtime `prospectiq.*` + GitHub Actions Auto-Scraper + Vercel Dashboard)
-- **Active Phase:** **Phase 3 Code Complete & Verified Locally (Uncommitted on Disk)** -> Paused for the night; tomorrow: verify Owner sign-in on `http://localhost:5173/`, commit & push Phase 3 (`web/`), deploy `web/` to Vercel, append production `/auth/callback` URL to `shared-apps`, and run first controlled live scrape!
+- **Active Phase:** **Phase 3 Deployed Live at `https://kamal-prospectiq.vercel.app/`** -> Added bespoke ProspectIQ Radar browser favicon (`favicon.svg` + `favicon.png`), ready for Phase 4 (first controlled live scrape via live dashboard & 100-lead QA calibration).
 
 ---
 
@@ -99,20 +99,13 @@ All Phase 2 code, SQL schema, CI workflow, and offline cloud tests are implement
 
 ---
 
-## 6. Immediate Next Actions (Resume Tomorrow)
+## 6. Immediate Next Actions (Phase 4 & Production QA)
 
-1. **Verify Local Owner Login (2 mins):**
-   - Start `pnpm --dir web run dev` (outside sandbox on Windows) -> open `http://localhost:5173/`.
-   - Confirm logged-out view shows static dummy data & empty email field in Owner sign-in modal.
-   - Sign in as Owner -> confirm `LIVE · prospectiq` badge, 6 seeded `target_queue` rows, 10 seeded `exclusions`, and live `0 / 250` quota meters.
-2. **Commit & Push Phase 3:**
-   - Commit & push uncommitted Phase 3 changes (`web/`, `phase-doc.md`, `memory.md`) to `kamal-hq/prospectiq` (`main`).
-3. **Deploy `web/` to Vercel (Free Hobby):**
-   - Root Directory = `web` (skip optional Vercel Supabase Integration button).
-   - Manual Env Vars (ZERO `service_role`!):
-     - **Config:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (`sb_publishable_...`), `NEXT_PUBLIC_SUPABASE_SCHEMA=prospectiq`
-     - **Secret:** `OWNER_SUPABASE_USER_ID` (`bc477ad2-5f94-451a-a186-f89caac09cb6`), `GITHUB_DISPATCH_TOKEN` (fine-grained PAT, `Actions: Read and write`), `GITHUB_REPO_OWNER=kamal-hq`, `GITHUB_REPO_NAME=prospectiq`
-   - Append live `https://<your-vercel-domain>.vercel.app/auth/callback` to `shared-apps` -> Authentication -> URL Configuration -> Redirect URLs (keep Cadence URLs intact!).
-4. **First Controlled Live Scrape & Phase 4 QA:**
+1. **Confirm Production Auth Callback URL on `shared-apps`:**
+   - Ensure `https://kamal-prospectiq.vercel.app/auth/callback` is appended in `shared-apps` -> **Authentication -> URL Configuration -> Redirect URLs** (keeping Cadence's URLs intact).
+2. **Verify Live Production Deployment (`https://kamal-prospectiq.vercel.app/`):**
+   - Confirm Light theme default, ProspectIQ Radar browser favicon, static dummy preview when logged out, and live `prospectiq.*` Owner workspace on sign-in.
+3. **First Controlled Live Scrape & Phase 4 QA:**
    - Dispatch 1 city × 1 niche (1 SerpApi credit) from live Vercel UI -> verify GitHub Actions + Supabase Realtime stream end-to-end.
+   - Run 100-lead live quality audit and update `README.md` with live `https://kamal-prospectiq.vercel.app/` portfolio link.
    - *(Optional, pending approval per `AGENTS.md` Hard Stops)* Sync `ARCHITECTURE.md` & `rule.md` to remove legacy `SUPABASE_SERVICE_ROLE_KEY` references in favor of the `shared-apps` publishable-key contract.

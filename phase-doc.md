@@ -10,7 +10,7 @@
 | :--- | :--- | :--- | :--- |
 | **Phase 1** | Core Engine Overhaul & "Garbage In, Garbage Out" Fixes | Local Python Engine | `[x] Verified & Complete` |
 | **Phase 2** | Supabase Cloud Migration & GitHub Actions Auto-Scraper | Cloud DB + CI/CD Automation | `[x] Verified & Secrets Configured` |
-| **Phase 3** | Figma Pro Frontend Integration & Vercel Deployment | `web/` Vite + Vercel Functions | `[~] Code Complete & Verified — Ready for Local Test & Vercel Deploy` |
+| **Phase 3** | Figma Pro Frontend Integration & Vercel Deployment | `web/` Vite + Vercel Functions | `[x] Deployed Live on Vercel` |
 | **Phase 4** | Production QA, Scoring Calibration & Portfolio Launch | Full Stack + Live Data Audit | `[ ] Not Started` |
 
 ---
@@ -106,10 +106,10 @@
     - **No Public Sign-Up:** `AuthModal` supports Owner `signInWithPassword` + password reset with explicit `${window.location.origin}/auth/callback` redirect.
     - **Logged-Out Visitors:** Render 100% static curated client-side dummy data (`mockLeads.ts`, `mockWorkspace.ts`) with ZERO Supabase DB calls.
     - **Logged-In Owner:** Lazily upserts `prospectiq.profiles` (`onConflict: "id"` — zero triggers on `auth.users`), rejects any non-owner `shared-apps` account via RLS, and switches seamlessly to live `prospectiq.*` data + Realtime.
-- [ ] **3.4 Vercel Free Hobby Deployment:**
-  - Commit & push Phase 3 to GitHub, connect `kamal-hq/prospectiq` to Vercel with Root Directory set to `web/` (skip Vercel's optional "Supabase Integration" button and add env vars manually).
-  - Add Vercel environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (`sb_publishable_...`), `NEXT_PUBLIC_SUPABASE_SCHEMA=prospectiq` (all Type = `Config`, NOT `Secret`), plus server-side `OWNER_SUPABASE_USER_ID`, `GITHUB_DISPATCH_TOKEN`, `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME` (**NEVER** add `service_role` key).
-  - Append production Vercel `https://<your-app>.vercel.app/auth/callback` URL to `shared-apps` Supabase Auth -> URL Configuration -> Redirect URLs (preserving `cadence` URLs).
+- [x] **3.4 Vercel Free Hobby Deployment:**
+  - Deployed `web/` live at `https://kamal-prospectiq.vercel.app/` (Root Directory = `web/`, manual `NEXT_PUBLIC_*` Config vars + server-side Secret vars, zero `service_role`).
+  - Added custom ProspectIQ Radar favicon (`web/public/favicon.svg` + `favicon.png`) and excluded from SPA rewrite in `web/vercel.json`.
+  - *(Confirm)* `https://kamal-prospectiq.vercel.app/auth/callback` appended to `shared-apps` Supabase Auth -> URL Configuration -> Redirect URLs (preserving `cadence` URLs).
 
 ### Phase 3 Definition of Done (DoD)
 - Live production URL on `*.vercel.app` loads cleanly on desktop and mobile.
