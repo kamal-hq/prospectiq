@@ -246,6 +246,9 @@ class TestPhase2CloudAdapter(unittest.TestCase):
             targets = database.fetch_next_targets(limit=2)
             self.assertEqual(len(targets), 1)
             self.assertEqual(targets[0]["next_page_offset"], 20)
+            order_calls = [c for c in queue_builder.calls if c[0] == "order"]
+            self.assertEqual(order_calls[0][1], "last_scraped_at")
+            self.assertEqual(order_calls[1][1], "priority")
 
             database.advance_target_cursor("tq-1", leads_found=10, page_step=20)
             fake_schema.rpc.assert_called_once_with(

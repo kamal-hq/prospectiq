@@ -40,7 +40,10 @@ def _determine_pitch_angle(audit: SiteAudit, contacts: ContactEnrichment) -> Pit
     """
     has_social = _has_any_social(contacts)
 
-    # 1. No owned functioning website
+    # 1. No owned functioning website (distinguish TIMEOUT tarpits from genuinely missing sites)
+    if audit.website_status == "BROKEN" and audit.http_status == "TIMEOUT":
+        return "REDESIGN_SSL"
+
     if audit.website_status in ("NO_WEBSITE", "BROKEN", "PARKED"):
         return "SOCIAL_ONLY" if has_social else "NO_WEBSITE"
 
@@ -113,6 +116,11 @@ def _build_pitch_summary(
         )
 
     if pitch_angle == "REDESIGN_SSL":
+        if audit.website_status == "BROKEN" and audit.http_status == "TIMEOUT":
+            return (
+                f"{rep_part} whose listed website timed out during automated audit "
+                "(likely slow hosting or firewall throttling). Verify manually before pitching speed/redesign."
+            )
         gaps = []
         if audit.has_ssl is False:
             gaps.append("no HTTPS/SSL")
@@ -162,7 +170,10 @@ def score_lead(
     has_social = _has_any_social(contacts)
 
     # 1. Core Web Presence Opportunity (max +35)
-    if audit.website_status in ("NO_WEBSITE", "BROKEN", "PARKED"):
+    is_timeout = audit.website_status == "BROKEN" and audit.http_status == "TIMEOUT"
+    if audit.website_status in ("NO_WEBSITE", "PARKED") or (
+        audit.website_status == "BROKEN" and not is_timeout
+    ):
         score += 35
     elif pitch_angle == "REDESIGN_SSL":
         score += 20
@@ -194,9 +205,13 @@ def score_lead(
         score += 8
 
     # 4. Missing SSL / Mobile / Analytics / Digital Gap (max +15)
-    if audit.website_status in ("NO_WEBSITE", "BROKEN", "PARKED"):
+    if audit.website_status in ("NO_WEBSITE", "PARKED") or (
+        audit.website_status == "BROKEN" and not is_timeout
+    ):
         # No site implies zero SSL / zero analytics capture
         score += 15
+    elif is_timeout:
+        score += 5
     elif audit.website_status == "LIVE":
         tech_gap = 0
         if audit.has_ssl is False:
@@ -213,9 +228,12 @@ def score_lead(
     if has_social:
         score += 10
 
-    # 6. Franchise / Enterprise Penalty (-40)
+    # 6. Franchise / Mega-Enterprise Penalty
     if candidate.is_franchise:
         score -= 40
+    elif reviews >= 2500:
+        # Large regional multi-truck enterprises typically have in-house marketing teams
+        score -= 25
 
     # Clamp strictly to [0, 100]
     score = max(0, min(100, int(score)))

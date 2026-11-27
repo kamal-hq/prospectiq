@@ -968,8 +968,9 @@ def finish_scrape_job(
 
 def fetch_next_targets(limit: int = 2) -> List[Dict[str, Any]]:
     """
-    Fetch the next `limit` enabled rows from `prospectiq.target_queue` ordered by
-    highest priority (`priority ASC`) and stalest `last_scraped_at` (`NULLS FIRST`).
+    Fetch the next `limit` enabled rows from `prospectiq.target_queue` using fair
+    round-robin ordering: stalest / never-scraped targets first (`last_scraped_at ASC
+    NULLS FIRST`), breaking ties by `priority ASC` so every enabled market rotates.
     """
     if not is_cloud_enabled():
         return []
@@ -979,8 +980,8 @@ def fetch_next_targets(limit: int = 2) -> List[Dict[str, Any]]:
         schema.table("target_queue")
         .select("*")
         .eq("enabled", True)
-        .order("priority", desc=False)
         .order("last_scraped_at", desc=False, nullsfirst=True)
+        .order("priority", desc=False)
         .limit(limit)
         .execute()
     )

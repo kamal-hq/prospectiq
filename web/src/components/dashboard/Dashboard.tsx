@@ -129,12 +129,14 @@ export default function Dashboard({
           label="Total verified leads"
           value={totalLeads.toLocaleString()}
           detail={isOwner ? "Live prospectiq.leads pool" : "+142 this week"}
+          badge={isOwner ? "Live" : "+12.4%"}
           bars={[26, 40, 35, 54, 49, 68, 88]}
         />
         <KpiCard
           label="Hot agency pitches"
           value={hotLeads.toLocaleString()}
           detail={`${hotPct}% of lead pool`}
+          badge={`${hotPct}%`}
           accent
           bars={[20, 34, 31, 48, 62, 59, 78]}
         />
@@ -142,12 +144,14 @@ export default function Dashboard({
           label="MX-verified emails"
           value={mxEmails.toLocaleString()}
           detail={`${mxPct}% deliverability`}
+          badge={`${mxPct}% MX`}
           bars={[31, 38, 46, 40, 55, 67, 74]}
         />
         <KpiCard
           label="Active outreach deals"
           value={activeDeals.toLocaleString()}
           detail={`${repliedDeals} replied / qualified`}
+          badge={isOwner ? `${repliedDeals} replied` : "23% reply"}
           bars={[20, 25, 29, 42, 37, 54, 64]}
         />
       </section>

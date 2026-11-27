@@ -6,11 +6,11 @@
 
 ## 1. Current Project Snapshot
 
-- **Last Updated:** 2026-11-23
+- **Last Updated:** 2026-11-27
 - **Active Workspace:** `C:\Users\Asif Computers\Desktop\TriSyn Media\prospectiq-main`
-- **Current Version on Disk:** v3.0 Clean Monorepo (`engine/` Python package + root `main.py` shim + `web/` React 19/Vite 8/Tailwind v4 + `web/api/scrape-trigger.ts` + `supabase/prospectiq_schema.sql` + `.github/workflows/auto-scrape.yml` + `tests/`)
+- **Current Version on Disk:** v3.0 Production Launch Complete (`engine/` + `web/` + `supabase/` + `.github/workflows/` + `tests/` + v3.0 `README.md`)
 - **Target Version:** v3.0 (Garbage-Free Agency Prospecting Engine + `shared-apps` Supabase Postgres/Auth/Realtime `prospectiq.*` + GitHub Actions Auto-Scraper + Vercel Dashboard)
-- **Active Phase:** **Phase 3 Deployed Live at `https://kamal-prospectiq.vercel.app/`** -> Added bespoke ProspectIQ Radar browser favicon (`favicon.svg` + `favicon.png`), ready for Phase 4 (first controlled live scrape via live dashboard & 100-lead QA calibration).
+- **Active Phase:** **All 4 MVP Phases Complete & Live at `https://kamal-prospectiq.vercel.app/`** -> 102-lead live production audit passed (`0%` social/UTM/franchise leaks, `95.7%` MX valid, `58.6%` free-first email savings, 4 consecutive daily cron runs green), round-robin queue & timeout/enterprise scorer calibrations applied, dynamic KPI badges & v3.0 `README.md` shipped.
 
 ---
 
@@ -78,7 +78,21 @@ All Phase 2 code, SQL schema, CI workflow, and offline cloud tests are implement
 - `web/src/components/layout/AuthModal.tsx`: Removed accidentally prefilled owner email & internal `shared-apps`/`prospectiq.*` copy from public modal; audited entire codebase (`web/src/**`, `web/api/*`, `engine/*`, `supabase/*`) confirming 0 hardcoded personal emails or UIDs.
 - **Dark / Light Theme Switch (`2026-11-23`):** Added Sun/Moon toggle in `TopBar.tsx`, persisted `prospectiq-theme` in `localStorage` defaulting to **Light theme** with zero-flicker bootstrap in `web/index.html`, built full high-contrast `[data-theme="light"]` token + component theme in `web/src/index.css`, and made Recharts/QuotaGuard accents theme-aware.
 - Verified green: `pnpm --dir web exec tsc --noEmit` (0 errors), `pnpm --dir web run build` (`1.91s`), `python -m unittest discover -s tests -v` (25/25 OK).
-- **Git Checkpoint:** Commit `845d3c4` pushed to `origin/main` (`https://github.com/kamal-hq/prospectiq`) covering Phase 1, Phase 2, and monorepo cleanup. Phase 3 changes (`web/` + `phase-doc.md` + `memory.md`) are verified locally on disk and intentionally uncommitted pending tomorrow's Owner sign-in check.
+- **Git Checkpoint:** Commit `fb4192d` pushed to `origin/main` (`https://github.com/kamal-hq/prospectiq`). Includes Phase 3 live Supabase wiring, Light-default theme switch, ProspectIQ Radar SVG+PNG favicon (`8b7502e`), `scrape-trigger.ts` `VITE_SUPABASE_*` fallback & exact missing-var diagnostics (`cc41eed`), and `auto-scrape.yml` `NEXT_PUBLIC_SUPABASE_*` secret fallback + CI ephemeral-SQLite guardrail (`fb4192d`).
+- **First Live End-to-End Scrape Verified (`2026-11-23`):** Dispatched via `https://kamal-prospectiq.vercel.app/` -> `/api/scrape-trigger` -> GitHub Actions -> `shared-apps` (`prospectiq.*`) -> Realtime UI: **10 verified leads**, **1 HOT (`NO_WEBSITE`)**, **7 MX-verified emails (100% deliverability)**, **0 garbage**.
+
+## 3e. Phase 4 Live 102-Lead Audit & Production Launch Polish (`2026-11-27`)
+
+- **Live 102-Lead Audit (`shared-apps` `prospectiq.*`, 0 credits spent):**
+  - `102` live leads across `7` completed runs (`4` autonomous daily `CRON` + `3` `MANUAL_UI`): `NO_WEBSITE=13`, `BROKEN=3`, `LIVE=69`, `WAF_PROTECTED=17`.
+  - Precision benchmarks: **0** social/aggregator-as-website leaks, **0** UTM/tracking leaks, **0** franchise false-HOT leads, **67/70 (95.7%)** MX-valid emails, **41/70 (58.6%)** found 100% free via JSON-LD/DOM (only `17/250` SerpApi & `45/50` Hunter calls used across 102 leads).
+- **Audit-Driven Production Fixes:**
+  - `engine/database.py`: Fixed `fetch_next_targets()` round-robin starvation (`last_scraped_at ASC NULLS FIRST, priority ASC`) so Dallas Roofing, Miami Landscaping, Atlanta Auto Detailing, and San Antonio Plumbing rotate fairly instead of starving behind priority 1 & 2.
+  - `engine/scorer.py`: Calibrated `BROKEN (TIMEOUT)` sites to pitch `REDESIGN_SSL` (not false `NO_WEBSITE`) and added `-25` mega-enterprise penalty for `reviews_count >= 2500` (prevents 11k-review enterprises like `Village Plumbing` from crowding out SMB HOT pitches); added unit test in `tests/test_phase1_engine.py`.
+  - Cleaned up stale Run #1 `QUEUED` `scrape_jobs` row (`06e69720-e3dc-4aec-a12b-c2d79d4ab2a2`) on `shared-apps` so live Sidebar accurately shows `Worker online / Cron`.
+- **Dashboard & Portfolio Polish:**
+  - `web/src/components/dashboard/KpiCard.tsx` & `Dashboard.tsx`: Replaced static `↗ 12.4%` placeholder with live dynamic telemetry badges (`Live`, `${hotPct}%`, `${mxPct}% MX`, `${repliedDeals} replied`).
+  - `README.md`: Rewrote for v3.0 showcasing `https://kamal-prospectiq.vercel.app/`, `$0/month` cloud architecture, anti-garbage highlights, and monorepo setup.
 
 ---
 
@@ -99,13 +113,11 @@ All Phase 2 code, SQL schema, CI workflow, and offline cloud tests are implement
 
 ---
 
-## 6. Immediate Next Actions (Phase 4 & Production QA)
+## 6. Post-MVP Backlog (Optional Stretch Features)
 
-1. **Confirm Production Auth Callback URL on `shared-apps`:**
-   - Ensure `https://kamal-prospectiq.vercel.app/auth/callback` is appended in `shared-apps` -> **Authentication -> URL Configuration -> Redirect URLs** (keeping Cadence's URLs intact).
-2. **Verify Live Production Deployment (`https://kamal-prospectiq.vercel.app/`):**
-   - Confirm Light theme default, ProspectIQ Radar browser favicon, static dummy preview when logged out, and live `prospectiq.*` Owner workspace on sign-in.
-3. **First Controlled Live Scrape & Phase 4 QA:**
-   - Dispatch 1 city × 1 niche (1 SerpApi credit) from live Vercel UI -> verify GitHub Actions + Supabase Realtime stream end-to-end.
-   - Run 100-lead live quality audit and update `README.md` with live `https://kamal-prospectiq.vercel.app/` portfolio link.
-   - *(Optional, pending approval per `AGENTS.md` Hard Stops)* Sync `ARCHITECTURE.md` & `rule.md` to remove legacy `SUPABASE_SERVICE_ROLE_KEY` references in favor of the `shared-apps` publishable-key contract.
+1. **Optional Governance Doc Sync (Requires User Approval per `AGENTS.md` Hard Stops):**
+   - Sync `ARCHITECTURE.md` & `rule.md` to replace legacy `SUPABASE_SERVICE_ROLE_KEY` & Next.js references with the final `shared-apps` publishable-key + Vite `web/` architecture.
+2. **Optional Stretch Features (`phase-doc.md` Task 4.3):**
+   - Instant **Discord / Telegram Hot-Lead Webhook Alerts** when nightly cron discovers `opportunity_score >= 85` leads.
+   - Free-tier **AI Cold Email / Loom Pitch Opener Generator** inside `LeadDrawer` (Gemini / Groq free API grounded in live audit signals).
+3. **Monthly Reminder (`2026-12-23`):** Rotate `GITHUB_DISPATCH_TOKEN` fine-grained PAT in Vercel before its Dec 23, 2026 expiration date.

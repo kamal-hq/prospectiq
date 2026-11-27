@@ -226,6 +226,29 @@ class TestScorerAndDatabaseUpsert(unittest.TestCase):
         franchise_score = scorer.score_lead(franchise_candidate, no_site_audit, social_contacts)
         self.assertLess(franchise_score.opportunity_score, 60)
 
+    def test_timeout_broken_site_and_mega_enterprise_not_scored_hot_no_website(self):
+        enterprise = RawCandidate(
+            business_name="Village Plumbing, Air & Electric",
+            city="Houston, TX",
+            industry="Plumbing",
+            phone="(713) 555-0199",
+            rating=4.8,
+            reviews_count=11086,
+            is_franchise=False,
+        )
+        timeout_audit = SiteAudit(
+            website_found=False,
+            website_status="BROKEN",
+            website_url="https://villageplumbing.com/",
+            root_domain="villageplumbing.com",
+            http_status="TIMEOUT",
+        )
+        empty_contacts = ContactEnrichment()
+        result = scorer.score_lead(enterprise, timeout_audit, empty_contacts)
+        self.assertEqual(result.pitch_angle, "REDESIGN_SSL")
+        self.assertNotEqual(result.pitch_tier, "HOT")
+        self.assertLess(result.opportunity_score, 50)
+
     def test_pre_scrape_domain_dedup_and_true_upsert_preserves_notes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = os.path.join(tmpdir, "test_leads.db")
